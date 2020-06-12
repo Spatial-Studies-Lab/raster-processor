@@ -18,6 +18,9 @@ ARGS = PARSER.parse_args()
 PATH = 'data/geotiff/'
 
 def raster_bands(tif, sub):
+  if not os.path.exists(PATH + 'converted'):
+    os.makedirs(PATH + 'converted')
+
   if re.search(r"\.tif$", tif):
     tif_file = PATH + sub + tif
     print('Reading raster', tif_file)
@@ -34,12 +37,6 @@ def raster_bands(tif, sub):
       copyfile(tif_file, PATH + 'converted/' + tif)
       project_raster(tif)
     elif src.RasterCount == 1 or src.RasterCount == 3 or src.RasterCount == 4:
-      print('Using ' + str(val) + ' for no data')
-      ds = gdal.Open(tif_file)
-      gdal.Translate(PATH + 'converted/red.tiff', ds, bandList=[1], noData=None)
-      gdal.Translate(PATH + 'converted/green.tiff', ds, bandList=[2], noData=None)
-      gdal.Translate(PATH + 'converted/blue.tiff', ds, bandList=[3], noData=None)
-      
       gdal_string = Template("""gdal_translate -b 1 ${f} -a_nodata none ${path}converted/red.tif &&
           gdal_translate -b ${b2} ${f} -a_nodata none ${path}converted/green.tif &&
           gdal_translate -b ${b3} ${f} -a_nodata none ${path}converted/blue.tif &&
@@ -75,8 +72,11 @@ def project_raster(tif):
       gdal2mbtiles --no-fill-borders --min-resolution 9 --max-resolution 17\
         ${path}converted/${base}_merc.tif ${path}converted/${base}.mbtiles""")
   else:
-    mb_string = Template("""gdal2tiles.py -r antialias -s "EPSG:4326"\
-      --processes 12 -w none ${path}converted/${tif} ${path}converted/${base}""")
+    if not os.path.exists(PATH + 'tiles'):
+      os.makedirs(PATH + 'tiles')
+
+    mb_string = Template("""gdal2tiles.py -r cubic -s "EPSG:4326"\
+      --processes 12 -w none ${path}converted/${tif} ${path}tiles/${base}""")
   os.system(mb_string.substitute(path=PATH, tif=tif, base=basename))
 
 if ARGS.file:

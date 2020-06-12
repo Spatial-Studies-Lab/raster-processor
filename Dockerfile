@@ -5,8 +5,12 @@ FROM ubuntu:bionic
 RUN apt-get update
 RUN apt-get upgrade -y
 
+RUN apt-get install -y software-properties-common
+RUN add-apt-repository ppa:ubuntugis/ppa
+
 # Install GDAL dependencies
-RUN apt-get install -y python3-pip libgdal-dev locales gdal-bin
+RUN apt-get update
+RUN apt-get install -y python3-pip libgdal-dev locales gdal-bin python-gdal
 
 # Ensure locales configured correctly
 RUN locale-gen en_US.UTF-8
@@ -22,7 +26,5 @@ ENV C_INCLUDE_PATH=/usr/include/gdal
 
 # This will install latest version of GDAL
 RUN pip3 install GDAL==2.2.3 rasterio awscli
-
-RUN gdal_translate --help
 
 COPY . /
