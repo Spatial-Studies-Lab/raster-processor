@@ -7,7 +7,7 @@ docker build . -t rasters
 
 2. Run the image, mounting your image directory:
 ```sh
-docker run -v <ABSOLUTE PATH TO IMAGE DIRECTORY>:/data/geotiff raster python3 prep_rasters.py
+docker run -v <ABSOLUTE PATH TO IMAGE DIRECTORY>:/data/geotiff rasters python3 prep_rasters.py
 ```
 
 The image will expect a directory structure like:
