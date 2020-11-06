@@ -5,7 +5,7 @@ FROM ubuntu:bionic
 RUN apt-get update
 RUN apt-get upgrade -y
 
-RUN apt-get install -y software-properties-common
+RUN apt-get install -y software-properties-common git
 RUN add-apt-repository ppa:ubuntugis/ppa
 
 # Install GDAL dependencies
@@ -25,6 +25,6 @@ ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 
 # This will install latest version of GDAL
-RUN pip3 install GDAL==2.2.3 rasterio awscli
+RUN pip3 install GDAL==2.2.3 rasterio boto3
 
 COPY . /
