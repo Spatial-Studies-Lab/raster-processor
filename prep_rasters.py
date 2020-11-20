@@ -2,6 +2,7 @@
 
 import os
 import re
+import time
 from string import Template
 from shutil import copyfile, rmtree
 from osgeo import gdal
@@ -11,20 +12,50 @@ import boto3
 PATH = ''
 s3 = boto3.client('s3')
 
+logs = boto3.client('logs')
+
+LOG_GROUP='raster-processor'
+LOG_STREAM=time.time()
+logs.create_log_stream(logGroupName=LOG_GROUP, logStreamName=LOG_STREAM)
+
 def raster_bands(tif, sub):
   tif_file = PATH + sub + tif
   print('Reading raster', tif_file)
+  logs.put_log_events(
+    logGroupName=LOG_GROUP,
+    logStreamName=LOG_STREAM,
+    logEvents=[{
+      'timestamp': int(round(time.time() * 1000)),
+      'message': 'Reading raster' + tif_file
+    }]
+  )
   try:
     src = gdal.Open(tif_file)
     ras = rasterio.open(tif_file)
   except:
     print('Cannot read', tif_file)
+    logs.put_log_events(
+      logGroupName=LOG_GROUP,
+      logStreamName=LOG_STREAM,
+      logEvents=[{
+        'timestamp': int(round(time.time() * 1000)),
+        'message': 'Cannot read' + tif_file
+      }]
+    )
   
   else:
     val = ras.read(1)[0][0]
 
     if (src.RasterCount == 4 or (val != 0 and val != 255)) and ras.dtypes[0] == 'uint8':
       print('4 correct bands found')
+      logs.put_log_events(
+        logGroupName=LOG_GROUP,
+        logStreamName=LOG_STREAM,
+        logEvents=[{
+          'timestamp': int(round(time.time() * 1000)),
+          'message': '4 correct bands found'
+        }]
+      )
       copyfile(tif_file, PATH + 'converted/' + tif)
       project_raster(tif)
     elif src.RasterCount == 1 or src.RasterCount == 3 or src.RasterCount == 4:
@@ -42,16 +73,40 @@ def raster_bands(tif, sub):
           rm ${path}converted/mask.tif""")
       if src.RasterCount == 1:
         print('1 band raster found')
+        logs.put_log_events(
+          logGroupName=LOG_GROUP,
+          logStreamName=LOG_STREAM,
+          logEvents=[{
+            'timestamp': int(round(time.time() * 1000)),
+            'message': '1 band raster found'
+          }]
+        )
         os.system(gdal_string.substitute(f=tif_file, b2='1', b3='1', nodata=str(val),
                                           path=PATH, tif=tif))
         project_raster(tif)
       elif src.RasterCount >= 3:
         print('3+ band raster found')
+        logs.put_log_events(
+          logGroupName=LOG_GROUP,
+          logStreamName=LOG_STREAM,
+          logEvents=[{
+            'timestamp': int(round(time.time() * 1000)),
+            'message': '3+ band raster found'
+          }]
+        )
         os.system(gdal_string.substitute(f=tif_file, b2='2', b3='3', nodata=str(val),
                                           path=PATH, tif=tif))
         project_raster(tif)
     else:
       print(tif_file + ' has wrong number of bands!')
+      logs.put_log_events(
+        logGroupName=LOG_GROUP,
+        logStreamName=LOG_STREAM,
+        logEvents=[{
+          'timestamp': int(round(time.time() * 1000)),
+          'message': tif_file + ' has wrong number of bands'
+        }]
+      )
 
 def project_raster(tif):
   mb_string = Template("""gdal2tiles.py -s "EPSG:4326" -z "9-12"\
@@ -65,6 +120,14 @@ def uploadDirectory(path, ssid):
     for file in files:
       path = os.path.join(root, file)
       print('Uploading', path)
+      logs.put_log_events(
+        logGroupName=LOG_GROUP,
+        logStreamName=LOG_STREAM,
+        logEvents=[{
+          'timestamp': int(round(time.time() * 1000)),
+          'message': 'Uploading ' + path
+        }]
+      )
       s3.upload_file(path, os.environ['BUCKET_TARGET'], re.sub(r"tiles", ssid, path))
   rmtree('tiles', True)
 
