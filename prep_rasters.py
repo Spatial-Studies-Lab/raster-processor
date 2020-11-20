@@ -70,6 +70,6 @@ for result in images['Contents']:
   if re.search(r"\.tif$", key):
     file = re.sub(r".*\/(.*)", "\\1", key, re.IGNORECASE)
     with open(os.path.join("input", file), 'wb') as i:
-      s3.download_fileobj(os.environ['AWS_SOURCE'], key, i)
+      s3.download_fileobj(os.environ['BUCKET_SOURCE'], key, i)
       raster_bands(file, "input/")
     os.remove(os.path.join('input', file))
