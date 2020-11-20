@@ -28,3 +28,5 @@ ENV C_INCLUDE_PATH=/usr/include/gdal
 RUN pip3 install GDAL==2.2.3 rasterio boto3
 
 COPY . /
+
+ENTRYPOINT [ "python3", "prep_rasters.py" ]

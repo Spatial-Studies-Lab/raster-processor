@@ -61,15 +61,15 @@ def uploadDirectory(path, ssid):
     for file in files:
       path = os.path.join(root, file)
       print('Uploading', path)
-      s3.upload_file(path, os.environ['AWS_BUCKET'], re.sub(r"tiles", ssid, path))
+      s3.upload_file(path, os.environ['BUCKET_TARGET'], re.sub(r"tiles", ssid, path))
   rmtree('tiles', True)
 
-images = s3.list_objects(Bucket=os.environ['AWS_BUCKET'])
+images = s3.list_objects(Bucket=os.environ['BUCKET_SOURCE'])
 for result in images['Contents']:
   key = result['Key']
   if re.search(r"\.tif$", key):
     file = re.sub(r".*\/(.*)", "\\1", key, re.IGNORECASE)
     with open(os.path.join("input", file), 'wb') as i:
-      s3.download_fileobj(os.environ['AWS_BUCKET'], key, i)
+      s3.download_fileobj(os.environ['AWS_SOURCE'], key, i)
       raster_bands(file, "input/")
     os.remove(os.path.join('input', file))
