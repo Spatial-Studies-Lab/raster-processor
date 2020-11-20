@@ -15,8 +15,8 @@ s3 = boto3.client('s3')
 logs = boto3.client('logs')
 
 LOG_GROUP='raster-processor'
-LOG_STREAM=time.time()
-logs.create_log_stream(logGroupName=LOG_GROUP, logStreamName=LOG_STREAM)
+LOG_STREAM=str(round(time.time() * 1000))
+logs.create_log_stream(logGroupName='raster-processor', logStreamName=LOG_STREAM)
 
 def raster_bands(tif, sub):
   tif_file = PATH + sub + tif
@@ -26,7 +26,7 @@ def raster_bands(tif, sub):
     logStreamName=LOG_STREAM,
     logEvents=[{
       'timestamp': int(round(time.time() * 1000)),
-      'message': 'Reading raster' + tif_file
+      'message': 'Reading raster ' + tif_file
     }]
   )
   try:
@@ -39,7 +39,7 @@ def raster_bands(tif, sub):
       logStreamName=LOG_STREAM,
       logEvents=[{
         'timestamp': int(round(time.time() * 1000)),
-        'message': 'Cannot read' + tif_file
+        'message': 'Cannot read ' + tif_file
       }]
     )
   
