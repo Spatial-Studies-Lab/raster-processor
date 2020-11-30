@@ -70,7 +70,7 @@ def raster_bands(tif, sub):
       logger.warning(tif_file + ' has wrong number of bands', level="WARN")
 
 def project_raster(tif):
-  mb_string = Template("""gdal2tiles.py -s "EPSG:4326" -z "9-12"\
+  mb_string = Template("""gdal2tiles.py -s "EPSG:4326" -z "6-16"\
       --processes 8 -w none converted/${tif} tiles/""")
   os.system(mb_string.substitute(tif=tif))
   os.remove(os.path.join('converted', tif))
