@@ -77,11 +77,11 @@ def project_raster(tif):
   uploadDirectory("tiles", re.sub(r"\.tif$", "", tif))
 
 def uploadDirectory(path, ssid):
+  logger.info('Uploading ' + path)
   for root, dirs, files in os.walk(path):
     for file in files:
       path = os.path.join(root, file)
       print('Uploading', path)
-      logger.info('Uploading ' + path)
       s3.upload_file(path, os.environ['BUCKET_TARGET'], re.sub(r"tiles", ssid, path))
   rmtree('tiles', True)
 
