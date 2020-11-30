@@ -28,13 +28,12 @@ def raster_bands(tif, sub):
   try:
     src = gdal.Open(tif_file)
     ras = rasterio.open(tif_file)
+    val = ras.read(1)[0][0]
   except:
     print('Cannot read', tif_file)
     logger.warning('Cannot read ' + tif_file, level="WARN")
   
   else:
-    val = ras.read(1)[0][0]
-
     if (src.RasterCount == 4 or (val != 0 and val != 255)) and ras.dtypes[0] == 'uint8':
       print('4 correct bands found')
       logger.info('4 correct bands found')
