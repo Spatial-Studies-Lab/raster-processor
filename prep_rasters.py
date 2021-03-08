@@ -10,6 +10,8 @@ from osgeo import gdal
 import rasterio
 import boto3
 from cloudwatch import cloudwatch
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 logger = logging.getLogger('logger')
 formatter = logging.Formatter('%(asctime)s : %(levelname)s - %(message)s')
@@ -17,6 +19,22 @@ handler = cloudwatch.CloudwatchHandler(os.environ['AWS_ACCESS_KEY_ID'], os.envir
 handler.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
+
+def error_email(message):
+  message = Mail(
+    from_email='info@axismaps.com',
+    to_emails=os.environ['EMAIL'],
+    subject='GENERATOR ERROR: ' + os.environ['PROJECT'] + ' - ' + os.environ['TASK'],
+    plain_text_content=message)
+  try:
+    sg = SendGridAPIClient(os.environ['SENDGRID_API_KEY'])
+    response = sg.send(message)
+    logger.info(response.status_code)
+    logger.info(response.body)
+    logger.info(response.headers)
+  except Exception as e:
+    print(e.message)
+    logger.warning(e.message)
 
 PATH = ''
 s3 = boto3.client('s3')
@@ -32,6 +50,7 @@ def raster_bands(tif, sub):
   except:
     print('Cannot read', tif_file)
     logger.warning('Cannot read ' + tif_file, level="WARN")
+    error_email('Cannot read ' + tif_file)
   
   else:
     if (src.RasterCount == 4 or (val != 0 and val != 255)) and ras.dtypes[0] == 'uint8':
@@ -67,10 +86,11 @@ def raster_bands(tif, sub):
     else:
       print(tif_file + ' has wrong number of bands!')
       logger.warning(tif_file + ' has wrong number of bands', level="WARN")
+      error_email(tif_file + ' has wrong number of bands')
 
 def project_raster(tif):
   mb_string = Template("""gdal2tiles.py -s "EPSG:4326" -z "6-16"\
-      --processes 8 -w none converted/${tif} tiles/""")
+      --processes=8 -w none converted/${tif} tiles/""")
   os.system(mb_string.substitute(tif=tif))
   os.remove(os.path.join('converted', tif))
   uploadDirectory("tiles", re.sub(r"\.tif$", "", tif))
