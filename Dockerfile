@@ -1,6 +1,8 @@
 #### Use latest Ubuntu LTS release as the base
 FROM ubuntu:bionic
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Update base container install
 RUN apt-get update
 RUN apt-get upgrade -y
@@ -25,7 +27,7 @@ ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 
 # This will install latest version of GDAL
-RUN pip3 install GDAL==2.2.3 rasterio boto3 cloudwatch sendgrid
+RUN pip3 install GDAL==2.2.3 rasterio boto3 cloudwatch sendgrid awscli
 
 COPY . /
 
