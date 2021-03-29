@@ -25,6 +25,7 @@ RUN echo 'alias pip=pip3' >> ~/.bashrc
 # Update C env vars so compiler can find gdal
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
+ENV GDAL_DATA=/usr/share/gdal
 
 # This will install latest version of GDAL
 RUN pip3 install GDAL==2.2.3 rasterio boto3 cloudwatch sendgrid awscli
