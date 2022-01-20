@@ -32,4 +32,4 @@ RUN pip3 install GDAL==2.2.3 rasterio boto3 cloudwatch sendgrid awscli
 
 COPY . /
 
-ENTRYPOINT [ "python3", "prep_rasters.py" ]
+ENTRYPOINT [ "python3", "-u", "prep_rasters.py" ]
